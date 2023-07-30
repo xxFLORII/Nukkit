@@ -1,7 +1,7 @@
 package cn.nukkit.entity.item;
 
-import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -9,8 +9,10 @@ import cn.nukkit.event.entity.ItemDespawnEvent;
 import cn.nukkit.event.entity.ItemSpawnEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.NukkitMath;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.AddItemEntityPacket;
 import cn.nukkit.network.protocol.DataPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
@@ -19,9 +21,8 @@ import cn.nukkit.network.protocol.EntityEventPacket;
  * @author MagicDroidX
  */
 public class EntityItem extends Entity {
-    public static final int NETWORK_ID = 64;
 
-    public static final int DATA_SOURCE_ID = 17;
+    public static final int NETWORK_ID = 64;
 
     public EntityItem(FullChunk chunk, CompoundTag nbt) {
         super(chunk, nbt);
@@ -105,18 +106,43 @@ public class EntityItem extends Entity {
         this.item = NBTIO.getItemHelper(this.namedTag.getCompound("Item"));
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY, true);
 
+        int id = this.item.getId();
+        if (id >= Item.NETHERITE_INGOT && id <= Item.NETHERITE_SCRAP) {
+            this.fireProof = true; // Netherite items are fireproof
+        }
+
         this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
     }
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return (source.getCause() == DamageCause.VOID ||
-                source.getCause() == DamageCause.CONTACT ||
-                source.getCause() == DamageCause.FIRE_TICK ||
-                (source.getCause() == DamageCause.ENTITY_EXPLOSION ||
-                source.getCause() == DamageCause.BLOCK_EXPLOSION) &&
-                !this.isInsideOfWater() && (this.item == null ||
-                this.item.getId() != Item.NETHER_STAR)) && super.attack(source);
+        DamageCause cause = source.getCause();
+        if ((cause == DamageCause.VOID || cause == DamageCause.CONTACT || cause == DamageCause.FIRE_TICK
+                || (cause == DamageCause.ENTITY_EXPLOSION || cause == DamageCause.BLOCK_EXPLOSION) && !this.isInsideOfWater()
+                && (this.item == null || this.item.getId() != Item.NETHER_STAR)) && super.attack(source)) {
+            if (this.item == null || this.isAlive()) {
+                return true;
+            }
+            int id = this.item.getId();
+            if (id != Item.SHULKER_BOX && id != Item.UNDYED_SHULKER_BOX) {
+                return true;
+            }
+            CompoundTag nbt = this.item.getNamedTag();
+            if (nbt == null) {
+                return true;
+            }
+            ListTag<CompoundTag> items = nbt.getList("Items", CompoundTag.class);
+            for (int i = 0; i < items.size(); i++) {
+                CompoundTag itemTag = items.get(i);
+                Item item = NBTIO.getItemHelper(itemTag);
+                if (item.isNull()) {
+                    continue;
+                }
+                this.level.dropItem(this, item);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -146,7 +172,7 @@ public class EntityItem extends Entity {
                         if (!closeItem.equals(getItem(), true, true)) {
                             continue;
                         }
-                        if(!entity.isOnGround()) {
+                        if (!entity.isOnGround()) {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
@@ -159,7 +185,7 @@ public class EntityItem extends Entity {
                         packet.eid = getId();
                         packet.data = newAmount;
                         packet.event = EntityEventPacket.MERGE_ITEMS;
-                        Server.broadcastPacket(this.getLevel().getPlayers().values(), packet);
+                        Server.broadcastPacket(this.getViewers().values(), packet);
                     }
                 }
             }
@@ -167,7 +193,7 @@ public class EntityItem extends Entity {
 
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
-        if (isInsideOfFire()) {
+        if (!this.fireProof && this.isInsideOfFire()) {
             this.kill();
         }
 
@@ -177,7 +203,7 @@ public class EntityItem extends Entity {
                 if (this.pickupDelay < 0) {
                     this.pickupDelay = 0;
                 }
-            } else {
+            }/* else { // Done in Player#checkNearEntities
                 for (Entity entity : this.level.getNearbyEntities(this.boundingBox.grow(1, 0.5, 1), this)) {
                     if (entity instanceof Player) {
                         if (((Player) entity).pickupEntity(this, true)) {
@@ -185,14 +211,13 @@ public class EntityItem extends Entity {
                         }
                     }
                 }
-            }
+            }*/
 
-            if (this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z) == 8 || this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z) == 9) { //item is fully in water or in still water
-                this.motionY -= this.getGravity() * -0.015;
-            } else if (this.isInsideOfWater()) {
-                this.motionY = this.getGravity() - 0.06; //item is going up in water, don't let it go back down too fast
-            } else {
-                this.motionY -= this.getGravity(); //item is not in water
+            int bid = level.getBlock(this.getFloorX(), NukkitMath.floorDouble(this.y + 0.53), this.getFloorZ(), false).getId();
+            if (bid == BlockID.WATER || bid == BlockID.STILL_WATER) {
+                this.motionY = this.getGravity() / 2;
+            } else if (!this.isOnGround()) {
+                this.motionY -= this.getGravity();
             }
 
             if (this.checkObstruction(this.x, this.y, this.z)) {
@@ -254,7 +279,7 @@ public class EntityItem extends Entity {
 
     @Override
     public String getName() {
-        return this.hasCustomName() ? this.getNameTag() : (this.item.hasCustomName() ? this.item.getCustomName() : this.item.getName());
+        return this.hasCustomName() ? this.getNameTag() : (this.item == null ? "" : this.item.hasCustomName() ? this.item.getCustomName() : this.item.getName());
     }
 
     public Item getItem() {
@@ -296,7 +321,7 @@ public class EntityItem extends Entity {
         addEntity.entityUniqueId = this.getId();
         addEntity.entityRuntimeId = this.getId();
         addEntity.x = (float) this.x;
-        addEntity.y = (float) this.y;
+        addEntity.y = (float) this.y + this.getBaseOffset();
         addEntity.z = (float) this.z;
         addEntity.speedX = (float) this.motionX;
         addEntity.speedY = (float) this.motionY;

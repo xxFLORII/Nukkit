@@ -26,23 +26,24 @@ public class AvailableCommandsPacket extends DataPacket {
     public static final int ARG_FLAG_SOFT_ENUM = 0x4000000;
 
     public static final int ARG_TYPE_INT = 1;
-    public static final int ARG_TYPE_FLOAT = 2;
-    public static final int ARG_TYPE_VALUE = 3;
-    public static final int ARG_TYPE_WILDCARD_INT = 4;
-    public static final int ARG_TYPE_OPERATOR = 5;
-    public static final int ARG_TYPE_TARGET = 6;
-    public static final int ARG_TYPE_WILDCARD_TARGET = 7;
-
-    public static final int ARG_TYPE_FILE_PATH = 14;
-
-    public static final int ARG_TYPE_STRING = 29;
-    public static final int ARG_TYPE_BLOCK_POSITION = 37;
-    public static final int ARG_TYPE_POSITION = 38;
-
-    public static final int ARG_TYPE_MESSAGE = 41;
-    public static final int ARG_TYPE_RAWTEXT = 43;
-    public static final int ARG_TYPE_JSON = 47;
-    public static final int ARG_TYPE_COMMAND = 54;
+    public static final int ARG_TYPE_FLOAT = 3;
+    public static final int ARG_TYPE_VALUE = 4;
+    public static final int ARG_TYPE_WILDCARD_INT = 5;
+    public static final int ARG_TYPE_OPERATOR = 6;
+    public static final int ARG_TYPE_COMPARE_OPERATOR = 7;
+    public static final int ARG_TYPE_TARGET = 8;
+    public static final int ARG_TYPE_WILDCARD_TARGET = 10;
+    public static final int ARG_TYPE_FILE_PATH = 17;
+    public static final int ARG_TYPE_FULL_INTEGER_RANGE = 23;
+    public static final int ARG_TYPE_EQUIPMENT_SLOT = 43;
+    public static final int ARG_TYPE_STRING = 44;
+    public static final int ARG_TYPE_BLOCK_POSITION = 52;
+    public static final int ARG_TYPE_POSITION = 53;
+    public static final int ARG_TYPE_MESSAGE = 55;
+    public static final int ARG_TYPE_RAWTEXT = 58;
+    public static final int ARG_TYPE_JSON = 62;
+    public static final int ARG_TYPE_BLOCK_STATES = 71;
+    public static final int ARG_TYPE_COMMAND = 74;
 
     public Map<String, CommandDataVersions> commands;
     public final Map<String, List<String>> softEnums = new HashMap<>();
@@ -93,12 +94,6 @@ public class AvailableCommandsPacket extends DataPacket {
         List<CommandEnum> enums = new ArrayList<>(enumsSet);
         List<String> postFixes = new ArrayList<>(postFixesSet);
 
-        this.putUnsignedVarInt(enumValues.size());
-        enumValues.forEach(this::putString);
-
-        this.putUnsignedVarInt(postFixes.size());
-        postFixes.forEach(this::putString);
-
         ObjIntConsumer<BinaryStream> indexWriter;
         if (enumValues.size() < 256) {
             indexWriter = WRITE_BYTE;
@@ -107,6 +102,14 @@ public class AvailableCommandsPacket extends DataPacket {
         } else {
             indexWriter = WRITE_INT;
         }
+
+        this.putUnsignedVarInt(enumValues.size());
+        enumValues.forEach(this::putString);
+
+        this.putUnsignedVarInt(0); //subCommandValues
+
+        this.putUnsignedVarInt(postFixes.size());
+        postFixes.forEach(this::putString);
 
         this.putUnsignedVarInt(enums.size());
         enums.forEach((cmdEnum) -> {
@@ -126,20 +129,24 @@ public class AvailableCommandsPacket extends DataPacket {
             }
         });
 
-        putUnsignedVarInt(commands.size());
+        this.putUnsignedVarInt(0); //subCommandData
 
+        putUnsignedVarInt(commands.size());
         commands.forEach((name, cmdData) -> {
             CommandData data = cmdData.versions.get(0);
 
             putString(name);
             putString(data.description);
-            putByte((byte) data.flags);
+            putLShort(data.flags);
             putByte((byte) data.permission);
 
             putLInt(data.aliases == null ? -1 : enums.indexOf(data.aliases));
 
+            putUnsignedVarInt(0); //subcommands
+
             putUnsignedVarInt(data.overloads.size());
             for (CommandOverload overload : data.overloads.values()) {
+                putBoolean(false); //isChaining
                 putUnsignedVarInt(overload.input.parameters.length);
 
                 for (CommandParameter parameter : overload.input.parameters) {
@@ -169,13 +176,12 @@ public class AvailableCommandsPacket extends DataPacket {
         });
 
         this.putUnsignedVarInt(softEnums.size());
-
         softEnums.forEach((name, values) -> {
             this.putString(name);
             this.putUnsignedVarInt(values.size());
             values.forEach(this::putString);
         });
 
-        this.putUnsignedVarInt(0);
+        this.putUnsignedVarInt(0); //enumConstraints
     }
 }

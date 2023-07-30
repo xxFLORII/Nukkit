@@ -14,7 +14,7 @@ It has a few key advantages over other server software:
 * Written in Java, Nukkit is faster and more stable.
 * Having a friendly structure, it's easy to contribute to Nukkit's development and rewrite plugins from other platforms into Nukkit plugins.
 
-Nukkit is **under improvement** yet, we welcome contributions. 
+Nukkit is **under improvement** yet, we welcome contributions.
 
 Links
 --------------------
@@ -26,14 +26,16 @@ Links
 * __[Plugins](https://nukkitx.com/resources/categories/nukkit-plugins.1)__
 * __[Wiki](https://nukkitx.com/wiki/nukkit)__
 
-*Thank you for visiting our official sites. Our official websites are provided free of charge, and we do not like to place ads on the home page affecting your reading. If you like this project, please [donate to us](https://nukkitx.com/donate). All the donations will only be used for Nukkit websites and services.*
+Contributing
+-------------
+Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issue. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.
 
 Build JAR file
 -------------
-- `git clone https://github.com/NukkitX/Nukkit`
+- `git clone https://github.com/CloudburstMC/Nukkit`
 - `cd Nukkit`
 - `git submodule update --init`
-- `./mvnw clean package`
+- `./gradlew shadowJar`
 
 The compiled JAR can be found in the `target/` directory.
 
@@ -50,24 +52,66 @@ Docker
 
 Running Nukkit in [Docker](https://www.docker.com/) (17.05+ or higher).
 
-Build image from source,
+Build image from the source,
 
 ```
 docker build -t nukkit .
 ```
 
-Run once to generate the `/data` volume, default settings, and choose language,
+Run once to generate the `nukkit-data` volume, default settings, and choose language,
 
 ```
-docker run -it --rm -p 19132:19132 nukkit
+docker run -it -p 19132:19132/udp -v nukkit-data:/data nukkit
 ```
+Docker Compose
+-------------
 
-Use [docker-compose](https://docs.docker.com/compose/overview/) to start server on port `19132` and with `./data` volume,
+Use [docker-compose](https://docs.docker.com/compose/overview/) to start server on port `19132` and with `nukkit-data` volume,
 
 ```
 docker-compose up -d
 ```
 
-Contributing
-------------
-Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issue. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.
+Kubernetes & Helm
+-------------
+
+Validate the chart:
+
+`helm lint charts/nukkit`
+
+Dry run and print out rendered YAML:
+
+`helm install --dry-run --debug nukkit charts/nukkit`
+
+Install the chart:
+
+`helm install nukkit charts/nukkit`
+
+Or, with some different values:
+
+```
+helm install nukkit \
+  --set image.tag="arm64" \
+  --set service.type="LoadBalancer" \
+    charts/nukkit
+```
+
+Or, the same but with a custom values from a file:
+
+```
+helm install nukkit \
+  -f helm-values.local.yaml \
+    charts/nukkit
+```
+
+Upgrade the chart:
+
+`helm upgrade nukkit charts/nukkit`
+
+Testing after deployment:
+
+`helm test nukkit`
+
+Completely remove the chart:
+
+`helm uninstall nukkit`

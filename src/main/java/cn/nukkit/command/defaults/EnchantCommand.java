@@ -3,6 +3,7 @@ package cn.nukkit.command.defaults;
 import cn.nukkit.Player;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
+import cn.nukkit.command.data.CommandEnum;
 import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.item.Item;
@@ -20,14 +21,19 @@ public class EnchantCommand extends VanillaCommand {
         this.setPermission("nukkit.command.enchant");
         this.commandParameters.clear();
         this.commandParameters.put("default", new CommandParameter[]{
-                new CommandParameter("player", CommandParamType.TARGET, false),
-                new CommandParameter("enchantment ID", CommandParamType.INT, false),
-                new CommandParameter("level", CommandParamType.INT, true)
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newType("enchantmentId", CommandParamType.INT),
+                CommandParameter.newType("level", true, CommandParamType.INT)
         });
         this.commandParameters.put("byName", new CommandParameter[]{
-                new CommandParameter("player", CommandParamType.TARGET, false),
-                new CommandParameter("id", false, CommandParameter.ENUM_TYPE_ENCHANTMENT_LIST),
-                new CommandParameter("level", CommandParamType.INT, true)
+                CommandParameter.newType("player", CommandParamType.TARGET),
+                CommandParameter.newEnum("enchantmentName", new CommandEnum("Enchant",
+                        "protection", "fire_protection", "feather_falling", "blast_protection", "projectile_projection", "thorns", "respiration",
+                        "aqua_affinity", "depth_strider", "sharpness", "smite", "bane_of_arthropods", "knockback", "fire_aspect", "looting", "efficiency",
+                        "silk_touch", "durability", "fortune", "power", "punch", "flame", "infinity", "luck_of_the_sea", "lure", "frost_walker", "mending",
+                        "binding_curse", "vanishing_curse", "impaling", "loyalty", "riptide", "channeling", "multishot", "piercing", "quick_charge",
+                        "soul_speed")),
+                CommandParameter.newType("level", true, CommandParamType.INT)
         });
     }
 
@@ -40,7 +46,7 @@ public class EnchantCommand extends VanillaCommand {
             sender.sendMessage(new TranslationContainer("commands.generic.usage", this.usageMessage));
             return true;
         }
-        Player player = sender.getServer().getPlayer(args[0]);
+        Player player = sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;
@@ -72,6 +78,7 @@ public class EnchantCommand extends VanillaCommand {
     }
 
     public int getIdByName(String value) throws NumberFormatException {
+        value = value.toLowerCase();
         switch (value) {
             case "protection":
                 return 0;
@@ -87,9 +94,9 @@ public class EnchantCommand extends VanillaCommand {
                 return 5;
             case "respiration":
                 return 6;
-            case "aqua_affinity":
-                return 7;
             case "depth_strider":
+                return 7;
+            case "aqua_affinity":
                 return 8;
             case "sharpness":
                 return 9;
@@ -108,6 +115,7 @@ public class EnchantCommand extends VanillaCommand {
             case "silk_touch":
                 return 16;
             case "durability":
+            case "unbreaking":
                 return 17;
             case "fortune":
                 return 18;
@@ -133,12 +141,22 @@ public class EnchantCommand extends VanillaCommand {
                 return 28;
             case "impaling":
                 return 29;
-            case "loyality":
-                return 30;
             case "riptide":
+                return 30;
+            case "loyalty":
                 return 31;
             case "channeling":
                 return 32;
+            case "multishot":
+                return 33;
+            case "piercing":
+                return 34;
+            case "quick_charge":
+                return 35;
+            case "soul_speed":
+                return 36;
+            case "swift_sneak":
+                return 37;
             default:
                 return Integer.parseInt(value);
         }

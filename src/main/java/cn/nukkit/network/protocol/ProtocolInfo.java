@@ -14,13 +14,14 @@ public interface ProtocolInfo {
      * Actual Minecraft: PE protocol version
      */
     @SuppressWarnings("UnnecessaryBoxing")
-    int CURRENT_PROTOCOL = Integer.valueOf("390"); // DO NOT REMOVE BOXING
+    int CURRENT_PROTOCOL = Integer.valueOf("594"); // DO NOT REMOVE BOXING
 
     List<Integer> SUPPORTED_PROTOCOLS = Ints.asList(CURRENT_PROTOCOL);
 
-    String MINECRAFT_VERSION = "v1.14.60";
-    String MINECRAFT_VERSION_NETWORK = "1.14.60";
+    String MINECRAFT_VERSION_NETWORK = "1.20.10";
+    String MINECRAFT_VERSION = 'v' + MINECRAFT_VERSION_NETWORK;
 
+    byte BATCH_PACKET = (byte) 0xff;
     byte LOGIN_PACKET = 0x01;
     byte PLAY_STATUS_PACKET = 0x02;
     byte SERVER_TO_CLIENT_HANDSHAKE_PACKET = 0x03;
@@ -159,6 +160,60 @@ public interface ProtocolInfo {
     byte COMPLETED_USING_ITEM_PACKET = (byte) 0x8e;
     byte NETWORK_SETTINGS_PACKET = (byte) 0x8f;
     byte PLAYER_AUTH_INPUT_PACKET = (byte) 0x90;
-
-    byte BATCH_PACKET = (byte) 0xff;
+    byte CREATIVE_CONTENT_PACKET = (byte) 0x91;
+    byte PLAYER_ENCHANT_OPTIONS_PACKET = (byte) 0x92;
+    byte ITEM_STACK_REQUEST_PACKET = (byte) 0x93;
+    byte ITEM_STACK_RESPONSE_PACKET = (byte) 0x94;
+    byte PLAYER_ARMOR_DAMAGE_PACKET = (byte) 0x95;
+    byte CODE_BUILDER_PACKET = (byte) 0x96;
+    byte UPDATE_PLAYER_GAME_TYPE_PACKET = (byte) 0x97;
+    byte EMOTE_LIST_PACKET = (byte) 0x98;
+    byte POS_TRACKING_SERVER_BROADCAST_PACKET = (byte) 0x99;
+    byte POS_TRACKING_CLIENT_REQUEST_PACKET = (byte) 0x9a;
+    byte DEBUG_INFO_PACKET = (byte) 0x9b;
+    byte PACKET_VIOLATION_WARNING_PACKET = (byte) 0x9c;
+    byte MOTION_PREDICTION_HINTS_PACKET = (byte) 0x9d;
+    byte ANIMATE_ENTITY_PACKET = (byte) 0x9e;
+    byte CAMERA_SHAKE_PACKET = (byte) 0x9f;
+    byte PLAYER_FOG_PACKET = (byte) 0xa0;
+    byte CORRECT_PLAYER_MOVE_PREDICTION_PACKET = (byte) 0xa1;
+    byte ITEM_COMPONENT_PACKET = (byte) 0xa2;
+    byte FILTER_TEXT_PACKET = (byte) 0xa3;
+    byte CLIENTBOUND_DEBUG_RENDERER_PACKET = (byte) 0xa4;
+    byte SYNC_ENTITY_PROPERTY_PACKET = (byte) 0xa5;
+    byte ADD_VOLUME_ENTITY_PACKET = (byte) 0xa6;
+    byte REMOVE_VOLUME_ENTITY_PACKET = (byte) 0xa7;
+    byte SIMULATION_TYPE_PACKET = (byte) 0xa8;
+    byte NPC_DIALOGUE_PACKET = (byte) 0xa9;
+    byte EDU_URI_RESOURCE_PACKET = (byte) 0xaa;
+    byte CREATE_PHOTO_PACKET = (byte) 0xab;
+    byte UPDATE_SUB_CHUNK_BLOCKS_PACKET = (byte) 0xac;
+    byte PHOTO_INFO_REQUEST_PACKET = (byte) 0xad;
+    byte SUB_CHUNK_PACKET = (byte) 0xae;
+    byte SUB_CHUNK_REQUEST_PACKET = (byte) 0xaf;
+    byte PLAYER_START_ITEM_COOLDOWN_PACKET = (byte) 0xb0;
+    byte SCRIPT_MESSAGE_PACKET = (byte) 0xb1;
+    byte CODE_BUILDER_SOURCE_PACKET = (byte) 0xb2;
+    byte TICKING_AREAS_LOAD_STATUS_PACKET = (byte) 0xb3;
+    byte DIMENSION_DATA_PACKET = (byte) 0xb4;
+    byte AGENT_ACTION_EVENT_PACKET = (byte) 0xb5;
+    byte CHANGE_MOB_PROPERTY_PACKET = (byte) 0xb6;
+    byte LESSON_PROGRESS_PACKET = (byte) 0xb7;
+    byte REQUEST_ABILITY_PACKET = (byte) 0xb8;
+    byte REQUEST_PERMISSIONS_PACKET = (byte) 0xb9;
+    byte TOAST_REQUEST_PACKET = (byte) 0xba;
+    byte UPDATE_ABILITIES_PACKET = (byte) 0xbb;
+    byte UPDATE_ADVENTURE_SETTINGS_PACKET = (byte) 0xbc;
+    byte DEATH_INFO_PACKET = (byte) 0xbd;
+    byte REQUEST_NETWORK_SETTINGS_PACKET = (byte) 0xc1;
+    byte GAME_TEST_REQUEST_PACKET = (byte) 0xc2;
+    byte GAME_TEST_RESULTS_PACKET = (byte) 0xc3;
+    byte UPDATE_CLIENT_INPUT_LOCKS_PACKET = (byte) 0xc4;
+    byte CLIENT_CHEAT_ABILITY_PACKET = (byte) 0xc5;
+    byte CAMERA_PRESETS_PACKET = (byte) 0xc6;
+    byte UNLOCKED_RECIPES_PACKET = (byte) 0xc7;
+    // MC packet IDs continue from 300 (0x12c)
+    // Hack: 100 is added to the IDs below on encode
+    // TODO: New pid() function (int) while trying not to break too many plugins
+    byte __INTERNAL__OPEN_SIGN_PACKET = (byte) 203; // 303
 }

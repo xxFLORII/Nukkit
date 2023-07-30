@@ -22,7 +22,8 @@ public class SpawnpointCommand extends VanillaCommand {
         this.setPermission("nukkit.command.spawnpoint");
         this.commandParameters.clear();
         this.commandParameters.put("default", new CommandParameter[]{
-                new CommandParameter("blockPos", CommandParamType.POSITION, true),
+                CommandParameter.newType("player", true, CommandParamType.TARGET),
+                CommandParameter.newType("spawnPos", true, CommandParamType.POSITION),
         });
     }
 
@@ -40,7 +41,7 @@ public class SpawnpointCommand extends VanillaCommand {
                 return true;
             }
         } else {
-            target = sender.getServer().getPlayer(args[0]);
+            target = sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
             if (target == null) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
                 return true;

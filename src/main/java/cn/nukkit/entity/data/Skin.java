@@ -3,9 +3,9 @@ package cn.nukkit.entity.data;
 import cn.nukkit.nbt.stream.FastByteArrayOutputStream;
 import cn.nukkit.utils.*;
 import com.google.common.base.Preconditions;
+import com.nimbusds.jose.shaded.json.JSONObject;
+import com.nimbusds.jose.shaded.json.JSONValue;
 import lombok.ToString;
-import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -31,8 +31,9 @@ public class Skin {
     public static final String GEOMETRY_CUSTOM = convertLegacyGeometryName("geometry.humanoid.custom");
     public static final String GEOMETRY_CUSTOM_SLIM = convertLegacyGeometryName("geometry.humanoid.customSlim");
 
-    private final String fullSkinId = UUID.randomUUID().toString();
+    private String fullSkinId;
     private String skinId;
+    private String playFabId = "";
     private String skinResourcePatch = GEOMETRY_CUSTOM;
     private SerializedImage skinData;
     private final List<SkinAnimation> animations = new ArrayList<>();
@@ -44,23 +45,32 @@ public class Skin {
     private boolean premium;
     private boolean persona;
     private boolean capeOnClassic;
+    private boolean primaryUser = true;
     private String capeId;
     private String skinColor = "#0";
     private String armSize = "wide";
-    private boolean trusted = false;
+    private boolean trusted = true;
+    private String geometryDataEngineVersion = "";
+    private boolean overridingPlayerAppearance = true;
 
     public boolean isValid() {
         return isValidSkin() && isValidResourcePatch();
     }
 
     private boolean isValidSkin() {
-        return skinId != null && !skinId.trim().isEmpty() &&
+        return skinId != null && !skinId.trim().isEmpty() && skinId.length() < 100 &&
                 skinData != null && skinData.width >= 64 && skinData.height >= 32 &&
-                skinData.data.length >= SINGLE_SKIN_SIZE;
+                skinData.data.length >= SINGLE_SKIN_SIZE &&
+                (playFabId == null || playFabId.length() < 100) &&
+                (capeId == null || capeId.length() < 100) &&
+                (skinColor == null || skinColor.length() < 100) &&
+                (armSize == null || armSize.length() < 100) &&
+                (fullSkinId == null || fullSkinId.length() < 200) &&
+                (geometryDataEngineVersion == null || geometryDataEngineVersion.length() < 100);
     }
 
     private boolean isValidResourcePatch() {
-        if (skinResourcePatch == null) {
+        if (skinResourcePatch == null || skinResourcePatch.length() > 1000) {
             return false;
         }
         try {
@@ -234,6 +244,22 @@ public class Skin {
         this.capeOnClassic = capeOnClassic;
     }
 
+    public void setPrimaryUser(boolean primaryUser) {
+        this.primaryUser = primaryUser;
+    }
+
+    public boolean isPrimaryUser() {
+        return primaryUser;
+    }
+
+    public void setGeometryDataEngineVersion(String geometryDataEngineVersion) {
+        this.geometryDataEngineVersion = geometryDataEngineVersion;
+    }
+
+    public String getGeometryDataEngineVersion() {
+        return geometryDataEngineVersion;
+    }
+
     public boolean isTrusted() {
         return trusted;
     }
@@ -258,8 +284,30 @@ public class Skin {
         this.armSize = armSize;
     }
 
+    public void setFullSkinId(String fullSkinId) {
+        this.fullSkinId = fullSkinId;
+    }
+
     public String getFullSkinId() {
-        return fullSkinId;
+        if (this.fullSkinId == null) {
+            this.fullSkinId = this.getSkinId() + this.getCapeId();
+        }
+        return this.fullSkinId;
+    }
+
+    public void setPlayFabId(String playFabId) {
+        this.playFabId = playFabId;
+    }
+
+    public String getPlayFabId() {
+        if (this.persona && (this.playFabId == null || this.playFabId.isEmpty())) {
+            try {
+                this.playFabId = this.skinId.split("-")[5];
+            } catch (Exception e) {
+                this.playFabId = this.getFullSkinId().replace("-", "").substring(16);
+            }
+        }
+        return this.playFabId;
     }
 
     private static SerializedImage parseBufferedImage(BufferedImage image) {
@@ -279,5 +327,13 @@ public class Skin {
 
     private static String convertLegacyGeometryName(String geometryName) {
         return "{\"geometry\" : {\"default\" : \"" + geometryName + "\"}}";
+    }
+
+    public void setOverridingPlayerAppearance(boolean overridingPlayerAppearance) {
+        this.overridingPlayerAppearance = overridingPlayerAppearance;
+    }
+
+    public boolean isOverridingPlayerAppearance() {
+        return this.overridingPlayerAppearance;
     }
 }

@@ -18,8 +18,12 @@ public class XpCommand extends Command {
         this.setPermission("nukkit.command.xp");
         this.commandParameters.clear();
         this.commandParameters.put("default", new CommandParameter[]{
-                new CommandParameter("amount|level", CommandParamType.INT, false),
-                new CommandParameter("player", CommandParamType.TARGET, true)
+                CommandParameter.newType("amount", CommandParamType.INT),
+                CommandParameter.newType("player", true, CommandParamType.TARGET)
+        });
+        this.commandParameters.put("level", new CommandParameter[]{
+                CommandParameter.newPostfix("amount", "l"),
+                CommandParameter.newType("player", true, CommandParamType.TARGET)
         });
     }
 
@@ -48,7 +52,7 @@ public class XpCommand extends Command {
                 player = (Player) sender;
             } else if (args.length == 2) {
                 amountString = args[0];
-                playerName = args[1];
+                playerName = args[1].replace("@s", sender.getName());
                 player = sender.getServer().getPlayer(playerName);
             } else {
                 sender.sendMessage(new TranslationContainer("commands.generic.usage", this.usageMessage));

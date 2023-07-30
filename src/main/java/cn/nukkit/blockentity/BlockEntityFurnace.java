@@ -14,8 +14,10 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.ContainerSetDataPacket;
+import cn.nukkit.network.protocol.LevelSoundEventPacket;
 
 import java.util.HashSet;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author MagicDroidX
@@ -24,10 +26,12 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
 
     protected FurnaceInventory inventory;
 
-    protected int burnTime = 0;
-    protected int burnDuration = 0;
-    protected int cookTime = 0;
-    protected int maxTime = 0;
+    protected int burnTime;
+    protected int burnDuration;
+    protected int cookTime;
+    protected int maxTime;
+
+    private int crackledTime;
 
     public BlockEntityFurnace(FullChunk chunk, CompoundTag nbt) {
         super(chunk, nbt);
@@ -55,6 +59,12 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             cookTime = 0;
         } else {
             cookTime = this.namedTag.getShort("CookTime");
+        }
+
+        if (!this.namedTag.contains("BurnDuration") || this.namedTag.getShort("BurnDuration") < 0) {
+            burnDuration = 0;
+        } else {
+            burnDuration = this.namedTag.getShort("BurnDuration");
         }
 
         if (!this.namedTag.contains("MaxTime")) {
@@ -233,6 +243,11 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             burnTime--;
             burnDuration = (int) Math.ceil((float) burnTime / maxTime * 200);
 
+            if (this.crackledTime-- <= 0) {
+                this.crackledTime = ThreadLocalRandom.current().nextInt(20, 100);
+                this.getLevel().addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_BLOCK_FURNACE_LIT);
+            }
+
             if (smelt != null && canSmelt) {
                 cookTime++;
                 if (cookTime >= 200) {
@@ -266,6 +281,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             burnTime = 0;
             cookTime = 0;
             burnDuration = 0;
+            this.crackledTime = 0;
         }
 
         for (Player player : this.getInventory().getViewers()) {

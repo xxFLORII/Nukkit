@@ -85,6 +85,18 @@ public class BlockEntityJukebox extends BlockEntitySpawnable {
                 case Item.RECORD_WAIT:
                     this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_RECORD_WAIT);
                     break;
+                case Item.RECORD_PIGSTEP:
+                    this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_RECORD_PIGSTEP);
+                    break;
+                case Item.RECORD_OTHERSIDE:
+                    this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_RECORD_OTHERSIDE);
+                    break;
+                case Item.RECORD_5:
+                    this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_RECORD_5);
+                    break;
+                case Item.RECORD_RELIC:
+                    this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_RECORD_RELIC);
+                    break;
             }
         }
     }
@@ -111,5 +123,10 @@ public class BlockEntityJukebox extends BlockEntitySpawnable {
     public CompoundTag getSpawnCompound() {
         return getDefaultCompound(this, JUKEBOX)
                 .putCompound("RecordItem", NBTIO.putItemHelper(this.recordItem));
+    }
+
+    @Override
+    public void onBreak() {
+        this.dropItem();
     }
 }

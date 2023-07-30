@@ -34,6 +34,10 @@ public class ItemFlintSteel extends ItemTool {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, double fx, double fy, double fz) {
+        if (player.isAdventure()) {
+            return false;
+        }
+
         if (block.getId() == AIR && (target instanceof BlockSolid || target instanceof BlockSolidMeta)) {
             if (target.getId() == OBSIDIAN) {
                 if (level.createPortal(target)) {
@@ -55,18 +59,16 @@ public class ItemFlintSteel extends ItemTool {
                     level.setBlock(fire, fire, true);
                     level.addLevelSoundEvent(block, LevelSoundEventPacket.SOUND_IGNITE);
                     level.scheduleUpdate(fire, fire.tickRate() + ThreadLocalRandom.current().nextInt(10));
+
+                    if ((player.gamemode & 0x01) == 0 && this.useOn(block)) {
+                        if (this.getDamage() >= this.getMaxDurability()) {
+                            this.count = 0;
+                        }
+                        player.getInventory().setItemInHand(this);
+                    }
                 }
                 return true;
             }
-
-            if ((player.gamemode & 0x01) == 0 && this.useOn(block)) {
-                if (this.getDamage() >= this.getMaxDurability()) {
-                    this.count = 0;
-                } else {
-                    this.meta++;
-                }
-            }
-            return true;
         }
         return false;
     }

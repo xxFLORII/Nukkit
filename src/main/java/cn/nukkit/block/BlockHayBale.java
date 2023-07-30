@@ -2,6 +2,7 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Faceable;
@@ -40,6 +41,11 @@ public class BlockHayBale extends BlockSolidMeta implements Faceable {
     }
 
     @Override
+    public int getToolType() {
+        return ItemTool.TYPE_HOE;
+    }
+
+    @Override
     public int getBurnChance() {
         return 60;
     }
@@ -73,5 +79,10 @@ public class BlockHayBale extends BlockSolidMeta implements Faceable {
     @Override
     public BlockFace getBlockFace() {
         return BlockFace.fromHorizontalIndex(this.getDamage() & 0x07);
+    }
+
+    @Override
+    public Item toItem() {
+        return Item.get(this.getId(), 0);
     }
 }

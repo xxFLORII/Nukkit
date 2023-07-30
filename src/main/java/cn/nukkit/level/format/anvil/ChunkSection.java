@@ -10,7 +10,6 @@ import cn.nukkit.utils.*;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.function.IntConsumer;
 
 /**
  * author: MagicDroidX
@@ -18,7 +17,7 @@ import java.util.function.IntConsumer;
  */
 public class ChunkSection implements cn.nukkit.level.format.ChunkSection {
 
-    private static final PalettedBlockStorage EMPTY_STORAGE = new PalettedBlockStorage();
+    private static final PalettedBlockStorage EMPTY_STORAGE = PalettedBlockStorage.createFromBlockPalette();
 
     private final int y;
 

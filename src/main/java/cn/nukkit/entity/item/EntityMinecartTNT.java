@@ -6,6 +6,7 @@ import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityExplosive;
 import cn.nukkit.entity.data.IntEntityData;
+import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityExplosionPrimeEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemMinecartTNT;
@@ -38,6 +39,11 @@ public class EntityMinecartTNT extends EntityMinecartAbstract implements EntityE
     @Override
     public boolean isRideable() {
         return false;
+    }
+
+    @Override
+    public String getInteractButtonText() {
+        return "";
     }
 
     @Override
@@ -114,7 +120,18 @@ public class EntityMinecartTNT extends EntityMinecartAbstract implements EntityE
 
     @Override
     public void dropItem() {
+        if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
+            Entity damager = ((EntityDamageByEntityEvent) this.lastDamageCause).getDamager();
+            if (damager instanceof Player && ((Player) damager).isCreative()) {
+                return;
+            }
+        }
         level.dropItem(this, new ItemMinecartTNT());
+    }
+
+    @Override
+    public String getName() {
+        return getType().getName();
     }
 
     @Override
@@ -133,7 +150,7 @@ public class EntityMinecartTNT extends EntityMinecartAbstract implements EntityE
 
         super.namedTag.putInt("TNTFuse", this.fuse);
     }
-    
+
     @Override
     public boolean onInteract(Player player, Item item, Vector3 clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);

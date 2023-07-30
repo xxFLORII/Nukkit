@@ -52,8 +52,7 @@ public class BlockLava extends BlockLiquid {
     public void onEntityCollide(Entity entity) {
         entity.highestPosition -= (entity.highestPosition - entity.y) * 0.5;
 
-        // Always setting the duration to 15 seconds? TODO
-        EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(this, entity, 15);
+        EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(this, entity, 8);
         Server.getInstance().getPluginManager().callEvent(ev);
         if (!ev.isCancelled()
                 // Making sure the entity is actually alive and not invulnerable.
@@ -153,6 +152,9 @@ public class BlockLava extends BlockLiquid {
 
     @Override
     public int tickRate() {
+        if (this.level.getDimension() == Level.DIMENSION_NETHER) {
+            return 10;
+        }
         return 30;
     }
 
